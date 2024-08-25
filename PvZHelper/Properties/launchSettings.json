@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Game": {
+      "commandName": "Executable",
+      "executablePath": "D:\\Downloads\\植物大战僵尸融合：旅行2.0.4\\植物大战僵尸融合：旅行2.0.4\\PlantsVsZombiesRH.exe"
+    }
+  }
+}
