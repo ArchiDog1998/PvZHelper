@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using Newtonsoft.Json;
 using System.Reflection;
 using UnityEngine;
 
@@ -15,9 +16,12 @@ public class PvZHelperPlugin : BaseUnityPlugin
     private const string GUID = "pvz.rh.helper";
 
     public static ConfigEntry<bool>? OffGcd, UnlimitedAllPlants, Columns;
-    public static ConfigEntry<int[,]>? Saved1;
+    public static ConfigEntry<string>? Savings;
+    public static List<int[,]> Saves = [
+            new int[0, 0], new int[0, 0], new int[0, 0], new int[0, 0], new int[0, 0],
+        ];
 
-    private bool _uiOpened = false;
+private bool _uiOpened = false;
     private readonly Dictionary<int, string> _plants = [];
 
     private void Awake()
@@ -25,7 +29,59 @@ public class PvZHelperPlugin : BaseUnityPlugin
         OffGcd = Config.Bind("1.常规", "无冷却模式", false, "植物不受冷却的限制");
         UnlimitedAllPlants = Config.Bind("1.常规", "解开所有配方", false, "解开所有的植物配方");
         Columns = Config.Bind("1.常规", "柱子模式", false, "打开所有柱子");
+        Savings = Config.Bind("2.预设", "预设1", SaveSaves(Saves), "预设1");
         Instance = this;
+        Saves = LoadSaves(Savings.Value);
+    }
+
+    private List<int[,]> LoadSaves(string str)
+    {
+        var data = JsonConvert.DeserializeObject<List<List<List<int>>>>(str);
+
+        var result = data.Select(s =>
+        {
+            var items = s.Select(s => s.Count);
+            var res = new int[s.Count, items.Any() ? items.Max() : 0];
+
+            for (int i = 0; i < s.Count; i++)
+            {
+                for (int j = 0; j < s[i].Count; j++)
+                {
+                    res[i,j] = s[i][j];
+                }
+            }
+
+            return res;
+        }).ToList();
+
+        if (result.Count < 5)
+        {
+            return 
+            [
+                new int[0, 0], new int[0, 0], new int[0, 0], new int[0, 0], new int[0, 0],
+            ];
+        }
+        return result;
+    }
+    private string SaveSaves(List<int[,]> value)
+    {
+        var result = value.Select(s =>
+        {
+            var res = new List<List<int>>();
+            for (int i = 0; i < s.GetLength(0); i++)
+            {
+                var ls = new List<int>();
+                for (int j = 0; j < s.GetLength(1); j++)
+                {
+                    ls.Add(s[i, j]);
+                }
+                res.Add(ls);
+            }
+
+            return res;
+        }).ToList();
+
+        return JsonConvert.SerializeObject(result);
     }
 
     private void Start()
@@ -104,8 +160,50 @@ public class PvZHelperPlugin : BaseUnityPlugin
     {
         Time.timeScale = GameAPP.gameSpeed = GUILayout.HorizontalSlider(GameAPP.gameSpeed, 0.1f, 10);
 
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+        if(Saves != null)
+        {
+            for (int i = 0; i < Saves.Count; i++)
+            {
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Load " + i, GUILayout.ExpandWidth(false)))
+                {
+                    for (int x = 0; x < Saves[i].GetLength(0); x++)
+                    {
+                        for (int y = 0; y < Saves[i].GetLength(1); y++)
+                        {
+                            var id = Saves[i][x, y];
+                            if (id < 0) continue;
+                            CreatePlant.Instance.SetPlant(x, y, 12); //Lily
+                            CreatePlant.Instance.SetPlant(x, y, id);
+                        }
+                    }
+                }
+                if (GUILayout.Button("Save " + i, GUILayout.ExpandWidth(false)))
+                {
+                    Saves[i] = new int[Board.Instance.boxType.GetLength(0), Board.Instance.boxType.GetLength(1)];
+                    for (int x = 0; x < Saves[i].GetLength(0); x++)
+                    {
+                        for (int y = 0; y < Saves[i].GetLength(1); y++)
+                        {
+                            Saves[i][x, y] = -1;
+                        }
+                    }
+                    foreach (var obj in Board.Instance.plantArray)
+                    {
+                        if (obj == null) continue;
+                        var plant = obj.GetComponent<Plant>();
+                        Saves[i][plant.thePlantColumn, plant.thePlantRow] = plant.thePlantType;
+                    }
+                    if (Savings != null)
+                    {
+                        Savings.Value = SaveSaves(Saves);
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+        }
 
+        scrollPosition = GUILayout.BeginScrollView(scrollPosition);
         foreach ( var item in _plants)
         {
             if (GUILayout.Button(item.Value))

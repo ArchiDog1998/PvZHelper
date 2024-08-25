@@ -8,10 +8,14 @@
 	<GameFolder>D:\Downloads\植物大战僵尸融合：旅行2.0.4\植物大战僵尸融合：旅行2.0.4\</GameFolder>
 	  <GameName>PlantsVsZombiesRH</GameName>
   </PropertyGroup>
-	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+	<Target Name="CopyPlugin" AfterTargets="AfterBuild">
 		<Copy SourceFiles="$(OutDir)$(AssemblyName).dll" DestinationFolder="$(GameFolder)BepInEx\plugins\" />
 	</Target>
-  <ItemGroup>
+	<Target Name="CopyJson" AfterTargets="AfterBuild">
+		<Copy SourceFiles="$(OutDir)Newtonsoft.Json.dll" DestinationFolder="$(GameFolder)BepInEx\plugins\" />
+	</Target>
+	<ItemGroup>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <Reference Include="BepInEx">
 		  <HintPath>$(GameFolder)BepInEx\core\BepInEx.dll</HintPath>
 		  <Private>False</Private>
@@ -46,10 +50,12 @@
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>$(GameFolder)$(GameName)_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
-    </Reference>
+		<Private>False</Private>
+	</Reference>
     <Reference Include="UnityEngine.JSONSerializeModule">
       <HintPath>$(GameFolder)$(GameName)_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
-    </Reference>
+		<Private>False</Private>
+	</Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>$(GameFolder)$(GameName)_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
 		<Private>False</Private>
