@@ -5,7 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
-	<GameFolder>D:\Downloads\融合版迷雾2.1.2版本\</GameFolder>
+	<GameFolder>D:\Downloads\融合版迷雾2.1.3版本\</GameFolder>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 	<Target Name="CopyPlugin" AfterTargets="AfterBuild">
 		<Copy SourceFiles="$(OutDir)$(AssemblyName).dll" DestinationFolder="$(GameFolder)BepInEx\plugins\" />

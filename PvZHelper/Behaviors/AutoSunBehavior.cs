@@ -7,11 +7,6 @@ internal class AutoSunBehavior : MonoBehaviour
 {
     private void Update()
     {
-        //if (Input.GetKeyDown(KeyCode.F2))
-        //{
-        //    _uiOpened = !_uiOpened;
-        //}
-
         if (Board.Instance == null) return;
 
         Board.Instance.freeCD = true; // OffGcd?.Value ?? false;
